@@ -103,7 +103,7 @@ export const getAvathonbyid = async(req,res)=>{
 
 export const acceptAvathons = async (req, res) => {
     const { id } = req.params; 
-    const { status } = req.body; 
+    const { status ,reason} = req.body; 
     console.log(status,id);
     try {
 

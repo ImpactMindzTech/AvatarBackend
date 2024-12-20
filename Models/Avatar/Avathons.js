@@ -102,6 +102,9 @@ const avathonsSchema = new mongoose.Schema({
        type:String,
        default:"Avathons" 
     },
+    RejectReason:{
+         type:String
+    }
 
 
 },{timestamp:true})
