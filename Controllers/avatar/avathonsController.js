@@ -52,8 +52,11 @@ export const Addavathons = async (req, res) => {
     lng,
   } = req.body;
 
+
+
   const { _id } = req.user;
   const role = req.role;
+
 
 
 
@@ -63,25 +66,21 @@ export const Addavathons = async (req, res) => {
     }
 
     let images = req.files.images;
-    let thumbnail = req.files.thumbnail;
- 
+    let video = req.files.video;
+    
     let imageFiles = [];
     let videoPath = ""; // Initialize video path variable
     if (video && video.length > 0) {
       if (video && video.length > 0) {
-        console.log("Video Object:", video[0]); // Logs the entire video file object
+        videoPath = video.map((file) => file.path);
       }
     }
-   
+  
     // If files are provided, map them to paths
     if (images && images.length > 0) {
       imageFiles = images.map((file) => file.path);
     }
-    let thumbnailpath = "";
-    if (thumbnail && thumbnail.length > 0) {
-      thumbnailpath = thumbnail.map((file) => file.path);
-    }
-
+ 
     const timeOnly = Time.split(":"); // Expecting time in format "HH:MM"
     if (timeOnly.length !== 2 || isNaN(timeOnly[0]) || isNaN(timeOnly[1])) {
       return res
@@ -166,7 +165,7 @@ export const Addavathons = async (req, res) => {
         avathonDescription: avathonDescription,
 
         EarlybirdPrice: EarlybirdPrice,
-        avathonsThumbnail: thumbnailpath[0] || " ",
+        avathonsThumbnail: videoPath[0] || " ",
         Availablespots: Availablespots,
         avathonsImage: imageFiles,
         aboutStream: aboutStream,
@@ -254,7 +253,7 @@ export const editAvathons = async (req, res) => {
   } = req.body;
   const { id } = req.params;
   const role = req.role
- console.log(req.body);
+
  
 
   try {
@@ -284,15 +283,15 @@ export const editAvathons = async (req, res) => {
     }
 
     let newThumbnail = "";
-    if (req.files && req.files.thumbnail && req.files.thumbnail.length > 0) {
-      newThumbnail = req.files.thumbnail[0].path;
+    if (req.files && req.files.video && req.files.video.length > 0) {
+      newThumbnail = req.files.video[0].path;
       if (thumbnailPath) {
         const thumbnailPublicId = extractPublicIdFromImageUrl(thumbnailPath);
         if (thumbnailPublicId) {
           await deleteFromCloudinary(thumbnailPublicId);
         }
       }
-      thumbnailPath = req.files.thumbnail[0].path;
+      thumbnailPath = req.files.video[0].path;
     }
 
     if (removeImages.length > 0) {
