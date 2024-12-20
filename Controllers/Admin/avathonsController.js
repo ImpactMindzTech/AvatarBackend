@@ -14,8 +14,8 @@ export const getAllAvathons = async (req, res) => {
 
     // Get all the pending avathons
     const allRequests = await Avathons.find({
-      avatarApproved: false,
-      status: 0,
+      
+
       deleteAvathons: 0
     })
       .sort({ createdAt: -1 })
@@ -104,7 +104,7 @@ export const getAvathonbyid = async(req,res)=>{
 export const acceptAvathons = async (req, res) => {
     const { id } = req.params; 
     const { status ,reason} = req.body; 
-    console.log(status,id);
+
     try {
 
       const findAvathon = await Avathons.findById(id);
