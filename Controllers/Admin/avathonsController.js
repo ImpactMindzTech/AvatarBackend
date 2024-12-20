@@ -118,7 +118,11 @@ export const acceptAvathons = async (req, res) => {
       if (status === 0) {
         updateData = { avatarApproved: true , avathonsStatus:'Accepted'}; 
       } else if (status === 1) {
-        updateData = { status: 1,avathonsStatus:'Rejected' }; 
+        if (!reason || reason.trim() === '') {
+          return res.status(400).json({ message: "Reason is required for rejection", success: false });
+      }
+      updateData = { status: 1, avathonsStatus: 'Rejected', RejectReason:reason};
+     
       } else {
         return res.status(400).json({ message: "Invalid status value", success: false });
       }
