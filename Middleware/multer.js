@@ -16,35 +16,25 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: (req, file) => {
-    let folder = 'uploads'; // Default folder for uploads
-
-    // Determine folder based on file type
+    let folder = 'uploads';
     if (file.fieldname === 'thumbnail') {
       folder = 'thumbnails';
     } else if (file.fieldname === 'images') {
-      folder = 'images';
-   
+      folder = 'Images';
     }
-    // Set transformation for image (webp) and video (mp4)
-
-
-    const fileFormat = file.mimetype.split('/')[1]; // Extract format from mimetype
-
+ const fileFormat = file.mimetype.split('/')[1];
     return {
-      format: 'webp', // Format for video and images
-      folder: folder, // Set folder based on file type
-      public_id: file.fieldname + "_" + Date.now(), // Unique public id
-      transformation: transformation // Apply transformation (if any)
+      format: 'webp',
+       folder: folder,
+      public_id: file.fieldname + "_" + Date.now(),
+transformation: [{ quality: 'auto' }]
     };
   },
 });
-
 export const upload = multer({
   storage: storage,
 });
-
 export const uploadMiddleware = upload.fields([
   { name: 'thumbnail', maxCount: 1 },
   { name: 'images', maxCount: 10 },
-
 ]);
