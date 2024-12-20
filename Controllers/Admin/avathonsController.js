@@ -14,8 +14,8 @@ export const getAllAvathons = async (req, res) => {
 
     // Get all the pending avathons
     const allRequests = await Avathons.find({
-      avatarApproved: false,
-      status: 0,
+      
+
       deleteAvathons: 0
     })
       .sort({ createdAt: -1 })
@@ -103,8 +103,8 @@ export const getAvathonbyid = async(req,res)=>{
 
 export const acceptAvathons = async (req, res) => {
     const { id } = req.params; 
-    const { status } = req.body; 
-    console.log(status,id);
+    const { status ,reason} = req.body; 
+
     try {
 
       const findAvathon = await Avathons.findById(id);
@@ -118,7 +118,11 @@ export const acceptAvathons = async (req, res) => {
       if (status === 0) {
         updateData = { avatarApproved: true , avathonsStatus:'Accepted'}; 
       } else if (status === 1) {
-        updateData = { status: 1,avathonsStatus:'Rejected' }; 
+        if (!reason || reason.trim() === '') {
+          return res.status(400).json({ message: "Reason is required for rejection", success: false });
+      }
+      updateData = { status: 1, avathonsStatus: 'Rejected', RejectReason:reason};
+     
       } else {
         return res.status(400).json({ message: "Invalid status value", success: false });
       }

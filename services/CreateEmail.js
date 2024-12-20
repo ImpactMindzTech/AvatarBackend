@@ -1115,7 +1115,7 @@ export const meetingStartNotificationEmail = (users, meeting,id) => {
             <p>Start Time: ${meeting.startTime}</p>
           </div>
           
-          <a href="https://www.avatarwalk.com/room_join/${id}" class="button">Join Live Stream</a>
+          <a href="https://www.avatarwalk.com/user/room_join/${id}" class="button">Join Live Stream</a>
           
           <p>If you have any questions or issues, feel free to reach out to us.</p>
           <p class="footer">We hope you enjoy your session!</p>
