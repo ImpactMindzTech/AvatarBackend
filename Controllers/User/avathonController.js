@@ -83,7 +83,7 @@ export const bookavathons = async(req,res)=>{
 
 export const getavathonsdetails = async(req,res)=>{
     const{id} = req.params;
-
+    console.log(id);
 
     try{
 

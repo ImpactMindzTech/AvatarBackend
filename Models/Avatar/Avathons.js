@@ -108,6 +108,12 @@ const avathonsSchema = new mongoose.Schema({
     },
     RejectReason:{
          type:String
+    },
+    lat:{
+        type:String
+    },
+    lng:{
+type:String
     }
 
 

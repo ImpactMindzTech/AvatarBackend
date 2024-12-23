@@ -291,6 +291,7 @@ export const getdetailExphome = async (req, res) => {
 
       // Fetch the experience
       const avatarLoc = await Experience.findOne({ _id: id });
+     
       const getAvailable = await Available.findOne({ avatarId: avatarLoc.avatarId });
 
       // Check if the experience is found

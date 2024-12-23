@@ -35,7 +35,7 @@ import { verifyToken } from "../../Middleware/Auth.js";
 import {upload } from "../../Middleware/multer.js";
 import { SignUpAndLoginWithGoogle } from "../../Controllers/User/GoogleSignInController.js";
 import { Notifications ,getNotification} from "../../Controllers/User/NotificationControler.js";
-import { allAvathons, bookavathons, getbookavathons } from "../../Controllers/User/avathonController.js";
+import { allAvathons, bookavathons, getbookavathons,getavathonsdetails } from "../../Controllers/User/avathonController.js";
 export const userRouter = express.Router();
 
 userRouter
@@ -48,6 +48,7 @@ userRouter
   .get("/tourdetail",verifyToken,detailpublictour)
   .get('/meetdata/:id',verifyToken,meetdata)
   .get("/getExperience",getExperience)
+  .get("/getavathondetail/:id",getavathonsdetails)
   .get("/getallexperience", getAllExperience)
   .get("/getdetailExp/:id",verifyToken, getdetailExp)
   .get("/getdetailExps/:id",getdetailExphome)
@@ -62,6 +63,7 @@ userRouter
   .get("/getAlluser", verifyToken, getAlluser)
   .get("/getrole",verifyToken,getrole)
   .get("/getavathons",verifyToken,allAvathons)
+
   .post("/deviceadd",deviceadd)
   .post("/completeoffer/:id",verifyToken,completeoffer)
   .post("/userprofile/:id", userprofile)
