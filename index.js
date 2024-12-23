@@ -22,6 +22,7 @@ import { ChatRouter } from "./Routes/Chat/ChatRoute.js";
 import { paymentwebhook ,paypalwebhook} from "./Controllers/User/Webhook.js";
 import { paymentsuccess } from "./Controllers/User/PaymentController.js";
 import Webhandler from "./Controllers/Sockethandler/Webhandler.js";
+import AvathonsLive from "./Controllers/Sockethandler/AvathonsLive.js";
 
 //constraints
 const port = 3000;
@@ -101,6 +102,7 @@ app.use(express.static("Public"));
 
 socketHandler(io);
 Webhandler(io);
+AvathonsLive(io);
 
 app.use("/user", userRouter);
 app.use("/avatar", avatarRouter);

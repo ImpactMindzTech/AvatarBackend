@@ -13,6 +13,10 @@ const avathonsSchema = new mongoose.Schema({
     type:String,
     trim:true
     },
+    avatarImage:{
+        type:String,
+    },
+
     avathonTitle:{
         type:String,
 

@@ -16,6 +16,8 @@ import { Request } from "../../Models/User/requestModel.js";
 import { Report } from "../../Models/User/reportModel.js";
 import { Payment } from "../../Models/User/Payment.js";
 import { Meeting } from "../../Models/User/MeetingModel.js";
+import {Avathons} from '../../Models/Avatar/Avathons.js'
+import { available } from "../avatar/avatarController.js";
 
 export const getExperience = async (req, res) => {
   try {
@@ -33,6 +35,7 @@ export const getExperience = async (req, res) => {
 
     // Applying filters
     switch (filters) {
+      
       case "popular":
         query.avgRating = { $gt: 4 };
         query.$expr = { $gt: [{ $size: "$Reviews" }, 2] };
@@ -51,14 +54,54 @@ export const getExperience = async (req, res) => {
         query.avgRating = { $gt: 4 };
         break;
     }
-
+    if (filters === "featureevent") {
+      // Step 1: Fetch the popular events based on the given filters
+      let popularevents = await Avathons.find({
+        deleteAvathons: 0,
+        status: 0,
+        avatarApproved: true
+      });
+    
+      if (popularevents && popularevents.length > 0) {
+        // Step 2: Extract avatarIds from the events
+        let avatarIds = popularevents.map((item) => item.avatarId);
+    
+        // Step 3: Fetch the Available data for all avatarIds
+        let availableData = await Available.find({ avatarId: { $in: avatarIds } });
+    
+        // Step 4: Combine the event data with the corresponding available data (timezone, etc.)
+        const eventsWithAvailableData = popularevents.map((event) => {
+          // Find the available data for the specific avatarId
+          const availableInfo = availableData.find((available) => available.avatarId.toString() === event.avatarId.toString());
+    
+          return {
+            ...event.toObject(), // Convert Mongoose document to plain object
+            avatarTimezone: availableInfo ? availableInfo.timeZone : "Timezone not available", // Add timezone or default value
+            avatarAvailableStatus: availableInfo ? availableInfo.status : "Status not available" // You can add more fields from Available
+          };
+        });
+    
+        // Step 5: Return the combined data
+        return res.status(200).json({
+          data: eventsWithAvailableData,
+          isSuccess: true,
+          message: "Successfully fetched events with their respective available data"
+        });
+      } else {
+        return res.status(200).json({
+          message: "No Event Found",
+          isSuccess: true
+        });
+      }
+    }
+    
     if (country) {
       query.country = country;
     }
 
     let data;
     let totalItems;
-
+   
     // Fetching experiences based on the filter
     if (search) {
       let searchQuery = {
