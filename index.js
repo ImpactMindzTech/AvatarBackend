@@ -23,6 +23,7 @@ import { paymentwebhook ,paypalwebhook} from "./Controllers/User/Webhook.js";
 import { paymentsuccess } from "./Controllers/User/PaymentController.js";
 import Webhandler from "./Controllers/Sockethandler/Webhandler.js";
 import AvathonsLive from "./Controllers/Sockethandler/AvathonsLive.js";
+import { avathonPaymentsuccess } from "./Controllers/User/avathonController.js";
 
 //constraints
 const port = 3000;
@@ -91,6 +92,7 @@ io.on("connection", (socket) => {
 app.get("/publicsuccess",publicjoinsuccess)
 app.get("/paysuccess",tipsuccess);
 app.get("/success",paymentsuccess);
+app.get("/avathonSuccess",avathonPaymentsuccess);
 app.get("/payaddmoretime",addsuccess);
 app.post("/paypalwebhook",express.json({type:"application/json"}),paypalwebhook);
 app.post("/webhookaccount", express.raw({ type: "application/json" }), paymentwebhook);

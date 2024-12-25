@@ -18,6 +18,9 @@ import { Payment } from "../../Models/User/Payment.js";
 import { Meeting } from "../../Models/User/MeetingModel.js";
 import {Avathons} from '../../Models/Avatar/Avathons.js'
 import { available } from "../avatar/avatarController.js";
+import { Admin } from "../../Models/Admin/AdminModel.js";
+import { avathonPayment } from "../../Models/User/AvathonPayment.js";
+import { avathonBook } from "../../Models/Avatar/bookingAvathons.js";
 
 export const getExperience = async (req, res) => {
   try {
@@ -68,19 +71,20 @@ export const getExperience = async (req, res) => {
     
         // Step 3: Fetch the Available data for all avatarIds
         let availableData = await Available.find({ avatarId: { $in: avatarIds } });
-    
+
         // Step 4: Combine the event data with the corresponding available data (timezone, etc.)
         const eventsWithAvailableData = popularevents.map((event) => {
           // Find the available data for the specific avatarId
           const availableInfo = availableData.find((available) => available.avatarId.toString() === event.avatarId.toString());
-    
+       
           return {
             ...event.toObject(), // Convert Mongoose document to plain object
             avatarTimezone: availableInfo ? availableInfo.timeZone : "Timezone not available", // Add timezone or default value
-            avatarAvailableStatus: availableInfo ? availableInfo.status : "Status not available" // You can add more fields from Available
+            avatarAvailableStatus: availableInfo ? availableInfo.status : "Status not available" ,// You can add more fields from Available
+            
           };
         });
-    
+
         // Step 5: Return the combined data
         return res.status(200).json({
           data: eventsWithAvailableData,
@@ -475,6 +479,105 @@ export const addlike = async (req, res) => {
   }
 };
 
+// export const expStatus = async (req, res) => {
+//   const { _id } = req.user;
+//   const role = req.role;
+//   const { status } = req.query;
+
+//   try {
+//     if (role !== "user") {
+//       return res.status(403).json({ message: "You don't have permission to access this resource", isSuccess: false });
+//     }
+
+//     // Validate status parameter
+//     const validStatuses = ["Requested", "Booked", "Completed", "Cancelled","Offers"];
+//     if (status && !validStatuses.includes(status)) {
+//       return res.status(400).json({ message: "Invalid status parameter", isSuccess: true });
+//     }
+
+
+
+
+
+//     if(status==="Offers"){
+//       const getallOffers = await Offer.find({userId:_id},{location:0});
+//       return res.status(200).json({message:"Successfully fetched",data:getallOffers,isSuccess:true});
+//     }
+
+//     // Construct query object
+//     let query = { userId: _id };
+//     if (status) {
+//       query.status = status;
+//     } else {
+//       query.status = "Requested";
+//     }
+
+//     // Find requests and populate packageId and bookingId
+//     let requests = await Request.find(query)
+//       .populate({
+//         path: "packageId", // Populate the packageId field in Request
+//         model: "Experience", // Model name for packageId
+//       })
+//       .populate({
+//         path: "bookingId", // Populate the bookingId field in Request
+//         model: "Booking", // Model name for bookingId
+//       });
+
+//     // Map through requests to format the data
+//     const formattedRequests = await Promise.all(
+//       requests.map(async (req) => {
+//         const experience = req.packageId;
+//         const booking = req.bookingId;
+
+//         // Calculate total price based on duration (assuming a fixed price per minute)
+//         const pricePerMinute = experience.AmountsperMinute; // Replace with actual pricing logic
+//         const totalPrice = booking?.Duration * pricePerMinute || 0;
+
+//         // Find payment related to bookingId
+//         const findPayment = await Payment.findOne({ bookingId: booking?._id, status: "Succeeded" });
+//         const findtimezone = await Available.findOne({avatarId:experience?.avatarId});
+
+//         // If payment is found, format the result
+//         if (findPayment) {
+//           return {
+//             reqId: req._id,
+//             status: req.status,
+//             cancelledBy: req.Cancelledby || null, // Assuming you have this field in your schema
+//             expId: experience?._id || null,
+//             experienceName: experience?.ExperienceName || null,
+//             state: experience?.State || null,
+//             city: experience?.city || null,
+//             country: experience?.country || null,
+//             bookingId:booking?._id,
+//             bookingDate: booking?.bookingDate || null,
+//             bookingTime: booking?.bookingTime || null,
+//             bookingStringTime:booking?.TimeString || null,
+//             endTime: booking?.endTime || null,
+//             totalPrice,
+//             avatarName: experience?.avatarName || null,
+//             avatarId: experience?.avatarId || null,
+//             timezone:findtimezone,
+//             experienceImage: experience?.thumbnail || null,
+//           };
+//         }
+//         return null;
+//       })
+//     );
+
+//     // Filter out any null results (where no payment was found)
+//     const filteredRequests = formattedRequests.filter((req) => req !== null);
+
+//     if (filteredRequests.length > 0) {
+//       return res.status(200).json({ data: filteredRequests, isSuccess: true });
+//     } else {
+//       return res.status(200).json({ data: [], message: "No requests found", isSuccess: true });
+//     }
+//   } catch (err) {
+//     return res.status(500).json({ message: err.message, isSuccess: false });
+//   }
+// };
+
+
 export const expStatus = async (req, res) => {
   const { _id } = req.user;
   const role = req.role;
@@ -486,7 +589,7 @@ export const expStatus = async (req, res) => {
     }
 
     // Validate status parameter
-    const validStatuses = ["Requested", "Booked", "Completed", "Cancelled","Offers"];
+    const validStatuses = ["Avathons","Requested", "Booked", "Completed", "Cancelled","Offers"];
     if (status && !validStatuses.includes(status)) {
       return res.status(400).json({ message: "Invalid status parameter", isSuccess: true });
     }
@@ -499,6 +602,35 @@ export const expStatus = async (req, res) => {
       const getallOffers = await Offer.find({userId:_id},{location:0});
       return res.status(200).json({message:"Successfully fetched",data:getallOffers,isSuccess:true});
     }
+
+    if (status === "Avathons") {
+      const bookedavathons = await avathonBook
+          .find({ userId: _id, Paystatus: 0 })
+          .populate('avathonId');
+  
+      // Fetch availability and extract timezone for each avathon
+      const avathonsWithAvailability = await Promise.all(
+          bookedavathons.map(async (booked) => {
+              const availability = await Available.findOne({ avatarId: booked.avathonId.avatarId });
+              return {
+                  ...booked._doc, // Spread the `booked` document properties
+                  availability: {
+                      timezone: availability?.timeZone || null, // Extract only the timezone or set to null if not available
+                  },
+              };
+          })
+      );
+  
+      return res.status(200).json({
+          message: "Successfully fetched",
+          data: avathonsWithAvailability,
+          isSuccess: true,
+      });
+  }
+  
+  
+     
+    
 
     // Construct query object
     let query = { userId: _id };
@@ -531,6 +663,7 @@ export const expStatus = async (req, res) => {
 
         // Find payment related to bookingId
         const findPayment = await Payment.findOne({ bookingId: booking?._id, status: "Succeeded" });
+
         const findtimezone = await Available.findOne({avatarId:experience?.avatarId});
 
         // If payment is found, format the result
@@ -572,7 +705,6 @@ export const expStatus = async (req, res) => {
     return res.status(500).json({ message: err.message, isSuccess: false });
   }
 };
-
 export const giveRating = async (req, res) => {
   const { rating, comment, AmmountTip } = req.body;
   const { id } = req.params; // Experience ID

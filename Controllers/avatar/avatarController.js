@@ -799,23 +799,34 @@ export const getrequests = async (req, res) => {
         });
       }
     }
-   if(status==="Avathons"){
-      const getallavathons = await Avathons.find({avatarId:_id,deleteAvathons:0})
-       if(getallavathons.length>0){
-        return res.status(200).json({
-          message:"All Avathons",
-          data:getallavathons,
-          isSuccess:true
-        })
-       }
-       else{
-        return res.status(200).json({
-          message:"No Avathons Found",
-          isSuccess:false
-        })
-       }
-      
-   }
+
+   if (status === "Avathons") {
+    const getallavathons = await Avathons.find({avatarId:_id,deleteAvathons:0})
+  
+      // Fetch availability and extract timezone for each avathon
+      const avathonsWithAvailability = await Promise.all(
+        getallavathons.map(async (booked) => {
+              const availability = await Available.findOne({ avatarId: booked.avatarId });
+              return {
+                  ...booked._doc, // Spread the `booked` document properties
+                  availability: {
+                      timezone: availability?.timeZone || null, // Extract only the timezone or set to null if not available
+                  },
+              };
+          })
+      );
+  
+      return res.status(200).json({
+          message: "Successfully fetched",
+          data: avathonsWithAvailability,
+          isSuccess: true,
+      });
+  }
+
+
+
+
+
     // Construct query object for other statuses
     let query = { avatarId: _id };
     if (status) {

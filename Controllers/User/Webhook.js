@@ -17,6 +17,8 @@ import { Account } from '../../Models/User/Account.js';
 import { Offer } from '../../Models/User/offerMode.js';
 import { User } from '../../Models/User/userModel.js';
 import { Meeting } from '../../Models/User/MeetingModel.js';
+import { avathonPayment } from '../../Models/User/AvathonPayment.js';
+import { Avathons } from '../../Models/Avatar/Avathons.js';
 const stripeClient = new Stripe(`${process.env.STRIPE_Client}`);
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -35,7 +37,7 @@ export const paymentwebhook = async (req, res) => {
 
     // Directly use the signature from headers
     event = stripeClient.webhooks.constructEvent(payload, sig, endpointSecret);
-
+ 
     // Handle the event based on its type
     switch (event.type) {
    
@@ -49,7 +51,23 @@ export const paymentwebhook = async (req, res) => {
   
       
         const paymentSuccess = await Payment.findOne({ SessionId: sessionId });
-         
+        
+         //avathon success
+         const avathonSuccess = await avathonPayment.findOne({ SessionId: sessionId });
+      if(avathonSuccess){
+        avathonSuccess.status = "Succeeded";
+        avathonSuccess.paymentIntentId = paymentIntentId;
+        avathonSuccess.currency = currency;
+        await avathonSuccess.save();
+
+        let updatethisone = await Avathons.findOne({_id:avathonSuccess.avathonId});
+        if(updatethisone){
+          updatethisone.joinedMembers = (updatethisone.joinedMembers || 0) + 1;
+          await updatethisone.save();
+        }
+      }
+
+
         if (paymentSuccess) {
           paymentSuccess.status = "Succeeded";
           paymentSuccess.paymentIntentId = paymentIntentId;
@@ -99,6 +117,7 @@ export const paymentwebhook = async (req, res) => {
         }else{
         console.log("not found");
         }
+
         let bookingsuccess = await BookingAddon.findOne({ SessionId: sessionId });
         if (bookingsuccess) {
           bookingsuccess.paymentStatus = "Succeeded";
@@ -238,6 +257,17 @@ export const paymentwebhook = async (req, res) => {
  
     
         // Update payment status to 'Succeeded'
+
+       //avathon payment 
+       const avathonSuccesss = await avathonPayment.findOne({ SessionId: chargeSessionId });
+       if(avathonSuccesss){
+         avathonSuccesss.status = "Succeeded";
+         avathonSuccesss.paymentIntentId = chargePaymentIntentId;
+         avathonSuccesss.currency = chargeCurrency;
+         await avathonSuccesss.save();
+       }
+
+
         const paymentSuccessCharge = await Payment.findOne({ SessionId: chargeSessionId });
         if (paymentSuccessCharge) {
           paymentSuccessCharge.status = "Succeeded";
@@ -324,6 +354,19 @@ export const paymentwebhook = async (req, res) => {
         const paymentIntentIdCreated = paymentIntent.id;
         const paymentIntentCurrency = paymentIntent.currency;
 
+        const avathonS = await avathonPayment.findOne({ 
+          paymentIntentId: paymentIntentIdCreated });
+        if(avathonS){
+          avathonS.status = "Succeeded";
+          avathonS.paymentIntentId = paymentIntentIdCreated;
+          avathonS.currency = paymentIntentCurrency;
+          await avathonS.save();
+        }
+ 
+
+     
+
+
         // Assuming you want to create a new Payment entry or update an existing one
         let paymentCreated = await Payment.findOne({ paymentIntentId: paymentIntentIdCreated });
 
@@ -339,7 +382,9 @@ export const paymentwebhook = async (req, res) => {
         }
         await paymentCreated.save();
         break;
-       case "charge.refunded":
+      
+      
+        case "charge.refunded":
         try{
           const refundIntent = event.data.object;
           const refundintentId = refundIntent.payment_intent;
@@ -403,13 +448,14 @@ export const paymentwebhook = async (req, res) => {
       default:
         console.log(`Unhandled event type ${event.type}`);
     }
-    console.log(event);
+  
     res.status(200).send('Webhook received successfully');
   } catch (err) {
     console.error(`Webhook Error: ${err.message}`);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 };
+
 
 
 
