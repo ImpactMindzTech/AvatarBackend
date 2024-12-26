@@ -35,7 +35,7 @@ import { verifyToken } from "../../Middleware/Auth.js";
 import {upload } from "../../Middleware/multer.js";
 import { SignUpAndLoginWithGoogle } from "../../Controllers/User/GoogleSignInController.js";
 import { Notifications ,getNotification} from "../../Controllers/User/NotificationControler.js";
-import { allAvathons, bookavathons, getbookavathons,getavathonsdetails, avathoncheckout, avathonPaypalcheckout } from "../../Controllers/User/avathonController.js";
+import { allAvathons, bookavathons, getbookavathons,getavathonsdetails, avathoncheckout, avathonPaypalcheckout,giveavtRating } from "../../Controllers/User/avathonController.js";
 export const userRouter = express.Router();
 
 userRouter
@@ -107,6 +107,7 @@ userRouter
 
   .post('/avathoncheckout',verifyToken,avathoncheckout)
   .post('/avathonpaypal',verifyToken,avathonPaypalcheckout)
+  .post('/giverate/:id',verifyToken,giveavtRating)
 
   .patch("/editAdd/:uid",verifyToken,editmultipleAdd)
   .delete("/deletemuladd/:uid",verifyToken, )

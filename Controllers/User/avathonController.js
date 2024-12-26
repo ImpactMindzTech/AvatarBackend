@@ -9,6 +9,9 @@ import { User } from "../../Models/User/userModel.js";
 import pay from "@paypal/checkout-server-sdk"
 import { avathonPayment } from "../../Models/User/AvathonPayment.js";
 import { Available } from "../../Models/Avatar/Availaibilitymodel.js";
+import { AvtRating } from "../avatar/avatarController.js";
+import { avRating } from "../../Models/Avatar/AvathonRating.js";
+import { Address } from "../../Models/User/addressModel.js";
 
 paypal.configure({
   "mode": "sandbox", //sandbox or live
@@ -254,7 +257,7 @@ export const avathonPaymentsuccess = async (req, res) => {
  const captureId = payment.transactions[0].related_resources[0].sale.id;
 
       if (error) {
-        console.log("PayPal payment execution error:", error.response);
+        ("PayPal payment execution error:", error.response);
         return res.redirect(`${process.env.WEBSITE_URL}/user/paymentfailed`);
         if (error.response && error.response.details) {
           console.log("Validation Error Details:", error.response.details);
@@ -377,27 +380,7 @@ export const bookavathons = async(req,res)=>{
     }
 }
 
-// export const getavathonsdetails = async(req,res)=>{
-//     const{id} = req.params;
-//     console.log(id);
 
-//     try{
-
-//         let fetchdetails = await Avathons.findOne({_id:id});
-//         const adminCommission = await Admin.find();
-//                 const commission = adminCommission[0]?.commission || 0; // Fallback to 0 if commission is unavailable
-//                 console.log(commission, "commission");
-//         if(fetchdetails){
-           
-//             return res.status(200).json({message:"Successfully fetched",isSuccess:true,data:{fetchdetails,commission}});
-//         }else{
-//             return res.status(200).json({message:"No data found",isSuccess:false,data:{}})
-//         }
-
-//     }catch(err){
-//         return res.status(404).json({message:err.message,isSuccess:false})
-//     }
-// }
 
 export const getavathonsdetails = async (req, res) => {
     const { id } = req.params;
@@ -474,6 +457,66 @@ export const getbookavathons = async(req,res)=>{
         return res.status(404).json({message:err.message,isSuccess:false})
     }
 }
+
+
+export const giveavtRating = async (req, res) => {
+  const { rating, comment, AmmountTip } = req.body;
+  const { id } = req.params; // Experience ID
+  const { _id } = req.user;
+  const role = req.role;
+  console.log(req.body);
+
+  try {
+    // Find the experience by ID
+    let username = await User.findOne({ _id: _id });
+  
+    let findexp = await Avathons.findOne({ _id: id });
+ 
+    // Find the user's profile image
+    let finduserImage = await Address.findOne({ userId: _id });
+
+    if (role === "user") {
+      // If profile image is not available, set a default or handle it as null
+      const userImage = finduserImage?.profileimage || username.profileimage;
+
+      // Create a new rating
+      let newRating = new avRating({
+        userName: username.userName,
+        userId: _id,
+        avatarId:findexp.avatarId,
+        AvathonId: id,
+        rating: rating,
+        comment: comment,
+        AmmountTip: AmmountTip,
+        userImage: userImage,
+      });
+
+      // Save the rating and add its ID to the experience's Reviews array
+      let doc = await newRating.save();
+
+      findexp.Reviews.push(doc._id);
+      findexp.rating.push(doc.rating);
+
+      // Calculate the average rating
+      const totalRatings = findexp.rating.length;
+      const sumRatings = findexp.rating.reduce((acc, curr) => acc + curr, 0);
+      const averageRating = sumRatings / totalRatings;
+
+      // Update the experience with the new average rating
+      findexp.avgRating = averageRating;
+      await findexp.save();
+
+      return res.status(201).json({ message: doc, isSuccess: true });
+    } else {
+   
+      return res.status(400).json({ message: "only user can give the review", isSuccess: false });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: error.message, isSuccess: false });
+  }
+};
+
 
 export const startstream = async(req,res)=>{
  try{

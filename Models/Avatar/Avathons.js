@@ -114,7 +114,20 @@ const avathonsSchema = new mongoose.Schema({
     },
     lng:{
 type:String
-    }
+    },
+     Reviews:[{
+        type: mongoose.Schema.Types.ObjectId,
+        ref:'avRating'
+  
+      }],
+      rating:[{
+        type:Number,
+        default:0
+      }],
+      avgRating:{
+        type:Number,
+        default:0
+      },
 
 
 },{timestamp:true})

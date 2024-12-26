@@ -18,80 +18,68 @@ io.on('connection', (socket) => {
   
 
     socket.on('userOnline', (userId) => {
+  
     
               onlineUsers.set(userId, socket.id);
+           
              
             });
        
-            socket.on("details",(data)=>{
-              reqdata = data.reqdata;
-              item = data.item; //
-            
-            })
+       socket.on('uid',(data)=>{
+        reqdata = data.userID;
+        item=data.details;
+        
+       })
             
 
     socket.on('createa', async(roomId) => {
      
-console.log(roomId,'sadfasd');
+
       if (rooms.has(roomId)) {
         socket.emit('error', 'Room already exists');
         return;
       }
-
+  
    
       rooms.set(roomId, { broadcaster: socket.id, viewers: [] });
       socket.join(roomId);
       socket.emit('createda', roomId);
 
-      try{
-                let meeting = await Meeting.findOne({ReqId:reqdata.ReqId});
-            
-                if(!meeting){
-                  
-                    return;
-                }
-                meeting.eventId=roomId;
-                await meeting.save();
-                let users = await User.findOne({_id:reqdata.userId});
-                let name = users.userName;
-                let email = users.email;
-             
-      
-                sendEmail(email,"Tour live is Started",meetingStartNotificationEmail(users,meeting,roomId));
-
-                let tourinfo = await TourInfo.findOne({bookingId:item.bookingId});
-                if(tourinfo){
-                  tourinfo.roomId=roomId;
-                  tourinfo.Start=1; 
-                  await tourinfo.save();
-                }
-          let meetid = meeting._id;
-               const receiverSocketId = onlineUsers.get(reqdata.userId);
-                if(receiverSocketId){
-                    io.to(receiverSocketId).emit('roomId',{roomId,item,meetid});
-                 
-                }
-                else{
-                 
-                }
-               }catch(err){
-          
-                
-               }
-    });
-socket.on("offerId",(data)=>{
-
-const{item,generatedRoomId}=data;
-const receiverSocketId = onlineUsers.get(item?.userId);
-if(receiverSocketId){
-    io.to(receiverSocketId).emit('roomIds',{generatedRoomId,item});
-  
-}
-else{
    
-}
+try{
+
+  const receiverSocketId = onlineUsers.get(reqdata);
+
+   if(receiverSocketId){
   
-})
+       io.to(receiverSocketId).emit('roomIdss',{roomId,item});
+
+    
+   }
+   else{
+    console.log("not working")
+   }
+  }catch(err){
+
+   
+  }
+
+    
+     
+    });
+// socket.on("offerIda",(data)=>{
+
+// const{item,generatedRoomId}=data;
+// const receiverSocketId = onlineUsers.get(item?.userId);
+// if(receiverSocketId){
+//     io.to(receiverSocketId).emit('roomIds',{generatedRoomId});
+  
+// }
+// else{
+   
+// }
+  
+// })
   
     // Join room
     socket.on('joina', (roomId) => {

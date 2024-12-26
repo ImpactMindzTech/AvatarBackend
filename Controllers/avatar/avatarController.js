@@ -911,7 +911,7 @@ export const avatardetails = async (req, res) => {
   const role = req.role;
   
   const { items_per_page = 10, pg = 1  } = req.query;
-  console.log(items_per_page);
+ 
 
   // Parsing items_per_page and pg from the query parameters
   const itemsPerPage = parseInt(items_per_page, 10);
