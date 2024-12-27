@@ -10,7 +10,7 @@ const onlineUsers = new Map();
 
 const AvathonsLive =(io)=>{
     
-
+  const polls = new Map(); 
 let item = {};
 let reqdata = {};
 let addtime = {};
@@ -83,20 +83,40 @@ try{
     
      
     });
-// socket.on("offerIda",(data)=>{
 
-// const{item,generatedRoomId}=data;
-// const receiverSocketId = onlineUsers.get(item?.userId);
-// if(receiverSocketId){
-//     io.to(receiverSocketId).emit('roomIds',{generatedRoomId});
-  
-// }
-// else{
-   
-// }
-  
-// })
-  
+socket.on('create-polla', ({ roomId, poll }) => {
+  console.log(roomId,poll);
+  // If no poll array exists for this room yet, initialize it
+  if (!polls.has(roomId)) {
+    polls.set(roomId, []);
+  }
+  // Add the new poll to the list
+  polls.get(roomId).push(poll);
+
+  // Broadcast the new poll to everyone in the room
+  io.to(roomId).emit('poll-createda', poll);
+});
+
+// 2) Vote on a poll
+socket.on('vote-polla', ({ roomId, pollId, optionIndex }) => {
+  // If room doesn't exist or no polls, do nothing (or emit an error)
+  if (!polls.has(roomId)) return;
+
+  // Find the specific poll by its ID
+  const roomPolls = polls.get(roomId);
+  const foundPoll = roomPolls.find((p) => p.id === pollId);
+
+  if (!foundPoll) return; // or emit an error
+
+  // Make sure the optionIndex is valid
+  if (optionIndex < 0 || optionIndex >= foundPoll.options.length) return;
+
+  // Increment the vote count for the chosen option
+  foundPoll.options[optionIndex].votes += 1;
+
+  // Broadcast the updated poll to everyone
+  io.to(roomId).emit('poll-updateda', foundPoll);
+});
     // Join room
     socket.on('joina', (roomId) => {
      
