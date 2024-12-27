@@ -128,7 +128,9 @@ type:String
         type:Number,
         default:0
       },
-
+    roomId:{
+        type:String
+    }
 
 },{timestamp:true})
 

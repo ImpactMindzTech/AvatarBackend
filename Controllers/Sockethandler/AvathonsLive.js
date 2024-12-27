@@ -3,7 +3,7 @@ import { TourInfo } from "../../Models/User/TourInfo.js";
 import { User } from "../../Models/User/userModel.js";
 import { meetingStartNotificationEmail } from "../../services/CreateEmail.js";
 import { sendEmail } from "../../services/EmailServices.js";
-
+import {Avathons} from "../../Models/Avatar/Avathons.js";
 const rooms = new Map();
 const onlineUsers = new Map();
 
@@ -44,6 +44,22 @@ io.on('connection', (socket) => {
       rooms.set(roomId, { broadcaster: socket.id, viewers: [] });
       socket.join(roomId);
       socket.emit('createda', roomId);
+      socket.on("details",async(data)=>{
+        console.log(data)
+        try{
+          let get = await Avathons.findOne({_id:data});
+         if(get){
+           get.roomId = roomId;
+           await get.save();
+         }else{
+          console.log("not found")
+         }
+
+        }catch(err){
+          
+        }
+
+      })
 
    
 try{
@@ -122,12 +138,12 @@ try{
   });
   
     // Handle offer
-    socket.on('offer', (offer, roomId, viewerId) => {
+    socket.on('offera', (offer, roomId, viewerId) => {
       socket.to(viewerId).emit('offera', offer, socket.id);
     });
   
     // Handle answer
-    socket.on('answer', (answer, roomId, broadcasterId) => {
+    socket.on('answera', (answer, roomId, broadcasterId) => {
       socket.to(broadcasterId).emit('answera', answer, socket.id);
     });
   
@@ -155,7 +171,7 @@ try{
       }
       const room = rooms.get(roomId);
       if (room.broadcaster === socket.id) {
-        io.to(roomId).emit('broadcaster-left');
+        io.to(roomId).emit('broadcaster-lefta');
         rooms.delete(roomId);
       } else {
         const index = room.viewers.indexOf(socket.id);

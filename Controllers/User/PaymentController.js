@@ -30,12 +30,12 @@ import { userProfile } from "../../Models/User/userProfile.js";
 import { TourInfo } from "../../Models/User/TourInfo.js";
 import { PaypalAcc } from "../../Models/User/Paypalacc.js";
 paypal.configure({
-  mode: "live",
+  mode: "sandbox",
   client_id: process.env.PAYPAL_CLIENT_ID,
   client_secret: process.env.PAYPAL_SECRET_ID,
 });
 
-const environment = new pay.core.LiveEnvironment(
+const environment = new pay.core.SandboxEnvironment(
   process.env.PAYPAL_CLIENT_ID,
   process.env.PAYPAL_SECRET_ID
 );
