@@ -76,7 +76,9 @@ const avathonsSchema = new mongoose.Schema({
         default:0
     },
     endEvent:{
-        type:Date
+        type:Date,
+        index: { expireAfterSeconds: 0 }
+       
     },
     createdAt: {
         type: Date,
@@ -130,8 +132,11 @@ type:String
       },
     roomId:{
         type:String
-    }
+    },
+   
 
 },{timestamp:true})
+
+avathonsSchema.index({ endEvent: 1 }, { expireAfterSeconds: 0 });
 
 export const Avathons = mongoose.model('Avathons',avathonsSchema);

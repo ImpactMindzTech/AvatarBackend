@@ -785,19 +785,13 @@ export const getrequests = async (req, res) => {
         // Include avatar ID in the response
       }));
 
-      if (findout.offer === true) {
+
         return res.status(200).json({
           message: "All Offers",
           data: formattedOffers,
           isSuccess: true,
         });
-      } else {
-        return res.status(200).json({
-          message: "All Offers",
-          data: [],
-          isSuccess: false,
-        });
-      }
+      
     }
 
    if (status === "Avathons") {

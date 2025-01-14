@@ -35,7 +35,7 @@ const stripeClient = new Stripe(process.env.STRIPE_Client); // Initialize Stripe
 export const avathoncheckout = async (req, res) => {
 
   try {
-    const { avathonId, avatarId, price, Adminfee,product, paymentType } = req.body;
+    const { avathonId, avatarId, price, Adminfee,product, paymentType, bookId } = req.body;
   
     const { _id } = req.user;
     // const findbooking = await Avathons.findOne({ _id: bookingId });
@@ -76,6 +76,7 @@ export const avathoncheckout = async (req, res) => {
       adminFee: Adminfee,
       totalprice:parsedPrice,
       SessionId: session.id,
+      bookiId:bookId,
       currency: "usd",
       status: "Pending",
       paymentType: paymentType,
@@ -115,7 +116,7 @@ export const avathoncheckout = async (req, res) => {
 export const avathonPaypalcheckout = async (req, res) => {
 
   try {
-    const { avathonId, avatarId, price, Adminfee,product, paymentType } = req.body;
+    const { avathonId, avatarId, price, Adminfee,product, paymentType,bookId } = req.body;
     const { _id } = req.user;
 
     const prices = price-Adminfee;
@@ -182,7 +183,7 @@ export const avathonPaypalcheckout = async (req, res) => {
           avatarId,
           price:prices,
           totalprice: parsedPrice,
-
+          bookiId:bookId,
           adminFee: Adminfee,
           paymentIntentId: payment.id,
           currency: "USD",
@@ -276,6 +277,7 @@ export const avathonPaymentsuccess = async (req, res) => {
           await updateaccount.save();
 
            let updatethisone = await Avathons.findOne({_id:updateaccount.avathonId});
+
         if(updatethisone){
           updatethisone.joinedMembers = (updatethisone.joinedMembers || 0) + 1;
           await updatethisone.save();
@@ -363,7 +365,7 @@ export const bookavathons = async(req,res)=>{
             await newbooking.save();
           
        
-            return res.status(200).json({message:"Avathons booked successfully",isSuccess:true})
+            return res.status(200).json({message:"Avathons booked successfully",isSuccess:true,id:newbooking._id})
            }
           
            

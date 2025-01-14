@@ -79,7 +79,7 @@ export const getExperience = async (req, res) => {
        
           return {
             ...event.toObject(), // Convert Mongoose document to plain object
-            avatarTimezone: availableInfo ? availableInfo.timeZone : "Timezone not available", // Add timezone or default value
+            avatarTimezone: availableInfo ? availableInfo.timeZone : "America/New_York", // Add timezone or default value
             avatarAvailableStatus: availableInfo ? availableInfo.status : "Status not available" ,// You can add more fields from Available
             
           };
@@ -604,26 +604,37 @@ export const expStatus = async (req, res) => {
     }
 
     if (status === "Avathons") {
+      // Fetch booked avathons with Paystatus 0
       const bookedavathons = await avathonBook
-          .find({ userId: _id, Paystatus: 0 })
+          .find({ userId: _id })
           .populate('avathonId');
   
-      // Fetch availability and extract timezone for each avathon
+      // Filter and process the avathons with payment conditions
       const avathonsWithAvailability = await Promise.all(
           bookedavathons.map(async (booked) => {
-              const availability = await Available.findOne({ avatarId: booked.avathonId.avatarId });
-              return {
-                  ...booked._doc, // Spread the `booked` document properties
-                  availability: {
-                      timezone: availability?.timeZone || null, // Extract only the timezone or set to null if not available
-                  },
-              };
+              // Check if a payment record exists for this booking
+              console.log(booked._id)
+              const findpayment = await avathonPayment.findOne({ bookiId: booked._id ,status: "Succeeded"});
+           
+  
+              // Include only the bookings that satisfy the payment condition
+              if (findpayment) {
+                  const availability = await Available.findOne({ avatarId: booked.avathonId.avatarId });
+                  return {
+                      ...booked._doc, // Spread the `booked` document properties
+                      availability: {
+                          timezone: availability?.timeZone || null, // Extract only the timezone or set to null if not available
+                      },
+                  };
+              }
           })
       );
   
+      // Filter out null values in case no records match the payment condition
+      const filteredAvathons = avathonsWithAvailability.filter(Boolean);
       return res.status(200).json({
           message: "Successfully fetched",
-          data: avathonsWithAvailability,
+          data: filteredAvathons,
           isSuccess: true,
       });
   }

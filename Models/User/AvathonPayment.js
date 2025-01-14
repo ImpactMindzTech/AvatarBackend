@@ -75,6 +75,10 @@ const avathonPaymentSchema = new mongoose.Schema({
     },
     captureId:{
         type:String
+    },
+    bookiId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'avathonBook'
     }
 
 },{timestamps: true});
