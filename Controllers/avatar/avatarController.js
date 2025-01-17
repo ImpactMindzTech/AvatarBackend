@@ -917,6 +917,10 @@ export const avatardetails = async (req, res) => {
   // Calculating the number of documents to skip
   const skip = (page - 1) * itemsPerPage;
   try {
+    let finduser = await User.findOne({_id:_id,status:0,block:0,Freeze:0})
+    if(!finduser){
+      return res.status(200).json({message:"Not Found",isSuccess:false})
+    }
     let findid = await User.findOne({ _id: _id });
 
     if (findid) {
@@ -1570,6 +1574,7 @@ export const avatarEarning = async (req, res) => {
 
   try {
     // Find Stripe and PayPal accounts separately
+   
     const stripeAccounts = await Account.find({ to: _id, Method: 'stripe' });
     const paypalAccounts = await Account.find({ to: _id, Method: 'paypal' });
 
