@@ -75,11 +75,16 @@ export const paymentwebhook = async (req, res) => {
           paymentSuccess.paymentdata = session;
           
           await paymentSuccess.save();
+
+
+
           let email = await User.findOne({_id:paymentSuccess.userId});
        
           sendEmail(email.email,"Payment Success", paymentSuccessEmail(email,paymentSuccess));
-           if(paymentSuccess.OfferId){
-            let findoutprice = paymentSuccess.price;
+        }
+          
+          if(paymentSuccess.OfferId){
+            let findoutprice = paymentSuccess.price || 0;
     
             let findcommission = await userProfile.findOne({userId:paymentSuccess.avatarId,role:"avatar"});
             let avatarcommision = findcommission.avatarcommission;
@@ -114,7 +119,7 @@ export const paymentwebhook = async (req, res) => {
             }
         
            }
-        }else{
+       else{
         console.log("not found");
         }
 

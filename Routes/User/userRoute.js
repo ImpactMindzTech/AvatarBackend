@@ -1,5 +1,5 @@
 import express from "express";
-import { rating } from "../../Controllers/User/ExperienceController.js";
+import { getExperiences, rating } from "../../Controllers/User/ExperienceController.js";
 import {
   AddUser,
   loginuser,
@@ -48,6 +48,8 @@ userRouter
   .get("/tourdetail",verifyToken,detailpublictour)
   .get('/meetdata/:id',verifyToken,meetdata)
   .get("/getExperience",getExperience)
+  .get("/getExperiences",verifyToken,getExperiences)
+
   .get("/getavathondetail/:id",getavathonsdetails)
   .get("/getallexperience", getAllExperience)
   .get("/getdetailExp/:id",verifyToken, getdetailExp)

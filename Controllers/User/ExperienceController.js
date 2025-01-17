@@ -178,6 +178,168 @@ export const getExperience = async (req, res) => {
     return res.status(500).json({ message: error.message, isSuccess: false });
   }
 };
+export const getExperiences = async (req, res) => {
+  const {_id} = req.user;
+  try {
+      let finduser = await User.findOne({_id:_id,status:0,block:0,Freeze:0})
+      if(!finduser){
+        return res.status(200).json({message:"Not Found",isSuccess:false})
+      }
+
+    const { filters, search, country="United States", items_per_page = 10, pg = 1 } = req.query;
+
+
+    // Parsing items_per_page and pg from the query parameters
+    const itemsPerPage = parseInt(items_per_page, 10);
+    const page = parseInt(pg, 10);
+
+    // Calculating the number of documents to skip
+    const skip = (page - 1) * itemsPerPage;
+
+    let query = { status: 0 }; // Ensuring that only experiences with status 0 are fetched
+
+    // Applying filters
+    switch (filters) {
+      
+      case "popular":
+        query.avgRating = { $gt: 4 };
+        query.$expr = { $gt: [{ $size: "$Reviews" }, 2] };
+        break;
+      case "Featured":
+        query.isFeatured = true;
+        break;
+      case "mostbooked":
+        query.Booking = { $gt: 20 };
+        break;
+      case "recent":
+        const oneHourAgo = new Date(new Date().getTime() - 60 * 60 * 1000);
+        query.createdAt = { $gte: oneHourAgo };
+        break;
+      case "recommended":
+        query.avgRating = { $gt: 4 };
+        break;
+    }
+    if (filters === "featureevent") {
+      // Step 1: Fetch the popular events based on the given filters
+      let popularevents = await Avathons.find({
+        deleteAvathons: 0,
+        status: 0,
+        avatarApproved: true
+      });
+    
+      if (popularevents && popularevents.length > 0) {
+        // Step 2: Extract avatarIds from the events
+        let avatarIds = popularevents.map((item) => item.avatarId);
+    
+        // Step 3: Fetch the Available data for all avatarIds
+        let availableData = await Available.find({ avatarId: { $in: avatarIds } });
+
+        // Step 4: Combine the event data with the corresponding available data (timezone, etc.)
+        const eventsWithAvailableData = popularevents.map((event) => {
+          // Find the available data for the specific avatarId
+          const availableInfo = availableData.find((available) => available.avatarId.toString() === event.avatarId.toString());
+       
+          return {
+            ...event.toObject(), // Convert Mongoose document to plain object
+            avatarTimezone: availableInfo ? availableInfo.timeZone : "America/New_York", // Add timezone or default value
+            avatarAvailableStatus: availableInfo ? availableInfo.status : "Status not available" ,// You can add more fields from Available
+            
+          };
+        });
+
+        // Step 5: Return the combined data
+        return res.status(200).json({
+          data: eventsWithAvailableData,
+          isSuccess: true,
+          message: "Successfully fetched events with their respective available data"
+        });
+      } else {
+        return res.status(200).json({
+          message: "No Event Found",
+          isSuccess: true
+        });
+      }
+    }
+    
+    if (country) {
+      query.country = country;
+    }
+
+    let data;
+    let totalItems;
+   
+    // Fetching experiences based on the filter
+    if (search) {
+      let searchQuery = {
+        status: 0, // Adding status filter to search query
+        $or: [
+          { city: { $regex: search, $options: "i" } },
+          { country: { $regex: search, $options: "i" } },
+          { state: { $regex: search, $options: "i" } },
+          { ExperienceName: { $regex: search, $options: "i" } },
+          { avatarName: { $regex: search, $options: "i" } },
+        ],
+      };
+
+      totalItems = await Experience.countDocuments(searchQuery);
+      data = await Experience.find(searchQuery).skip(skip).limit(itemsPerPage);
+    } else {
+      totalItems = await Experience.countDocuments(query);
+      data = await Experience.find(query).skip(skip).limit(itemsPerPage);
+    }
+
+    // Fetching availability and user data for each experience
+    const avatarIds = data.map((exp) => exp.avatarId);
+    
+    // Find all valid users who have avatarIds
+    const usersWithAvatars = await User.find({_id: { $in: avatarIds }}); // Fetch only avatarIds
+    const validAvatarIds = usersWithAvatars.map(user => user._id.toString());
+
+    // Fetch availability of those valid avatars
+    const availabilityData = await Available.find({ avatarId: { $in: validAvatarIds } });
+
+    // Filter out experiences where avatarId is not present in both User model and Available data
+    const mergedData = data
+      .filter((exp) => {
+        const availability = availabilityData.find((avail) => avail.avatarId.equals(exp.avatarId));
+        return validAvatarIds.includes(exp.avatarId.toString()) && availability; // Ensure both conditions are met
+      })
+      .map((exp) => {
+        const availability = availabilityData.find((avail) => avail.avatarId.equals(exp.avatarId));
+        return {
+          ...exp.toObject(),
+          availability: availability
+            ? {
+                from: availability.from,
+                to: availability.to,
+                timeZone: availability.timeZone,
+              }
+            : null,
+        };
+      });
+
+    // Sorting by creation date if the filter is "Recent"
+    if (filters === "Recent") {
+      mergedData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+
+    // Calculating total pages
+    const totalPage = Math.ceil(totalItems / itemsPerPage);
+
+    return res.status(200).json({
+      current_page: page,
+      data: mergedData,
+      isSuccess: true,
+      items_per_page: itemsPerPage,
+      message: "Successfully fetched all experiences",
+      total_items: totalItems,
+      total_page: totalPage,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: error.message, isSuccess: false });
+  }
+};
 
 
 

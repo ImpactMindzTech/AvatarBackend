@@ -265,6 +265,7 @@ export const Addexperience = async (req, res) => {
 //edit experience for avatar
 
 export const editExperience = async (req, res) => {
+
   const { _id } = req.user;
   const {
     AmountsperMinute,
@@ -295,8 +296,10 @@ export const editExperience = async (req, res) => {
       });
     }
 
+
     // Fetch the current document
-    const existingExperience = await Experience.findById(id);
+    const existingExperience = await Experience.findOne({_id:id,avatarId:_id});
+    console.log(existingExperience);
     if (!existingExperience) {
       return res.status(404).json({
         message: "Experience not found",
