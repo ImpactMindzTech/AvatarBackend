@@ -26,6 +26,7 @@ import { Admin } from "../../Models/Admin/AdminModel.js";
 import { Account } from "../../Models/User/Account.js";
 import { sendEmail } from "../../services/EmailServices.js";
 import { Notification } from "../../Models/User/NotificationModel.js";
+import { uploadFileToS3 } from "../../Middleware/uploadfiles3.js";
 
 const salt = 8;
 
@@ -33,11 +34,29 @@ const salt = 8;
 
 export const AddUser = async (req, res) => {
   const { uid, userName, email, password, confirmPassword, terms, isgoogleSignup } = req.body;
-  const profileImage = req.file.path;
 
 
 
+let profileImage="";
   try {
+ if (req.files.images) {
+      const profile = req.files.images[0];
+      const fileName = `${Date.now()}_${profile.originalname}`;
+      const folder = 'images';
+
+      // Set S3 path
+      profileImage = `https://awcdn.s3-accelerate.amazonaws.com/${folder}/${fileName}`;
+   
+      // Background upload
+      uploadFileToS3(profile.path, fileName, folder).catch((err) =>
+        console.error('Image upload failed:', err)
+      );
+    }
+
+
+
+
+
     let findemail = await User.findOne({ email: email });
     let username = await User.findOne({ userName: userName });
     if (username) {
@@ -142,11 +161,25 @@ export const AddUser = async (req, res) => {
 export const Addusername = async(req,res)=>{
   const{id} = req.params;
   const {userName}= req.body;
-const profileImage = req.file.path;
+let profileImage =" "
 
 
 
   try{
+
+    if (req.files.images) {
+      const profile = req.files.images[0];
+      const fileName = `${Date.now()}_${profile.originalname}`;
+      const folder = 'images';
+
+      // Set S3 path
+      profileImage = `https://awcdn.s3-accelerate.amazonaws.com/${folder}/${fileName}`;
+   
+      // Background upload
+      uploadFileToS3(profile.path, fileName, folder).catch((err) =>
+        console.error('Image upload failed:', err)
+      );
+    }
       let findusername = await User.findOne({userName:userName});
       if(findusername){
         return res.status(200).json({message:"UserName is Already Exists Please Choose Another UserName",isSuccess:false})
@@ -964,11 +997,24 @@ export const editprofile = async (req, res) => {
 const{_id}=req.user;
 
   // Check if the file is provided
-  const file = req.file;
-  
+ 
 
+let profileImage="";
   try {
     const { id } = req.params;
+    if (req.files.file) {
+      const profile = req.files.file[0];
+      const fileName = `${Date.now()}_${profile.originalname}`;
+      const folder = 'images';
+
+      // Set S3 path
+    profileImage = `https://awcdn.s3-accelerate.amazonaws.com/${folder}/${fileName}`;
+ 
+      // Background upload
+      uploadFileToS3(profile.path, fileName, folder).catch((err) =>
+        console.error('Image upload failed:', err)
+      );
+    }
 
     // Find user by id
     let user = await User.findOne({ _id: id });
@@ -991,14 +1037,17 @@ const{_id}=req.user;
       State:state,
       about:Bio,
       lat:lat,
-      lng:lng
+      lng:lng,
+      profileimage:profileImage
     
     };
 
     // If file is provided, add profileimage to update data
-    if (file) {
-      updateData.profileimage = file.path;
-    }
+
+
+    
+
+
 
     // Update the address
     let updateaddress = await Address.findOneAndUpdate({ userId: id }, updateData, { new: true });

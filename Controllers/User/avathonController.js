@@ -12,6 +12,8 @@ import { Available } from "../../Models/Avatar/Availaibilitymodel.js";
 import { AvtRating } from "../avatar/avatarController.js";
 import { avRating } from "../../Models/Avatar/AvathonRating.js";
 import { Address } from "../../Models/User/addressModel.js";
+import { avathonJoinNotification, avathonnotification, notifyAvatarUserJoined } from "../../services/CreateEmail.js";
+import { sendEmail } from "../../services/EmailServices.js";
 
 paypal.configure({
   "mode": "sandbox", //sandbox or live
@@ -270,6 +272,7 @@ export const avathonPaymentsuccess = async (req, res) => {
 
         // Update the payment status in the database
         let updateaccount = await avathonPayment.findOne({ paymentIntentId: paymentId });
+       
         if (updateaccount) {
           updateaccount.status ="Succeeded";
           updateaccount.payerId = payerId;
@@ -286,9 +289,19 @@ export const avathonPaymentsuccess = async (req, res) => {
 
 
         }
-
-
+        let userId = updateaccount.userId;
+   
+        let avathonId= updateaccount.avathonId;
+        let userDetails = await User.findOne({_id:userId});
+      
+        let userName = userDetails.userName;
+        let email = userDetails.email;
+        let avathodetails = await Avathons.findOne({_id:avathonId});
+        let avataremail = avathodetails?.avataremail
         
+        sendEmail(email,"Successfully Joined the Avathon",avathonJoinNotification(userName,avathodetails))
+
+        sendEmail(avataremail ,"A User joined Your Avathons",notifyAvatarUserJoined(userName,avathodetails))
 
 
         return res.redirect(`${process.env.WEBSITE_URL}/user/paymentsuccess`);
@@ -530,4 +543,50 @@ export const startstream = async(req,res)=>{
 
 
 
+// goes to all avatars notification that the event is started 
+export const notificationtoall = async (req, res) => {
+  const { id } = req.body;
 
+  try {
+    // Fetch all users who succeeded payments for the given avathon ID
+    const findAll = await avathonPayment.find({ avathonId: id, status: "Succeeded" });
+
+    // Extract user IDs
+    const userIds = findAll.map(item => item.userId);
+
+    // Fetch users' details (userName and email)
+    const users = await User.find({ _id: { $in: userIds } }, "userName email");
+
+    // Find room ID for the avathon
+    const findRoom = await Avathons.findOne({ _id: id });
+    let avathonname = findRoom.avathonTitle
+    const roomId = findRoom?.roomId;
+
+    if (!roomId) {
+      return res.status(404).json({ message: "Room ID not found." });
+    }
+
+    // Send emails to all users
+    for (const user of users) {
+      const { userName, email } = user;
+
+      // Prepare the email content using your template function
+      const emailContent = avathonnotification({
+        userName,
+        roomId,
+        avathonname
+      });
+
+      // Send email
+      await sendEmail(email, "Your Avathon Has Started!", emailContent);
+
+      console.log(`Email sent to ${email} for user ${userName}`);
+    }
+
+    // Return success response
+    return res.status(200).json({ message: "Notifications sent successfully to all users." });
+  } catch (err) {
+    console.error("Error in sending notifications:", err.message);
+    return res.status(500).json({ message: "Failed to send notifications.", error: err.message });
+  }
+};

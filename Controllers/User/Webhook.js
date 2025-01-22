@@ -10,7 +10,7 @@ import https from 'https'
 import { Dispute } from '../../Models/User/DisputeModel.js';
 import { Tip } from '../../Models/Avatar/Tipmodel.js';
 import { BookingAddon } from '../../Models/User/BookingAddon.js';
-import { paymentSuccessEmail } from '../../services/CreateEmail.js';
+import { avathonJoinNotification, notifyAvatarUserJoined, paymentSuccessEmail } from '../../services/CreateEmail.js';
 import { PublicJoin } from '../../Models/User/PublicJoin.js';
 import { userProfile } from '../../Models/User/userProfile.js';
 import { Account } from '../../Models/User/Account.js';
@@ -59,6 +59,21 @@ export const paymentwebhook = async (req, res) => {
         avathonSuccess.paymentIntentId = paymentIntentId;
         avathonSuccess.currency = currency;
         await avathonSuccess.save();
+
+          let userId = avathonSuccess.userId;
+           
+                let avathonId= avathonSuccess.avathonId;
+                let userDetails = await User.findOne({_id:userId});
+              
+                let userName = userDetails.userName;
+                let email = userDetails.email;
+                let avathodetails = await Avathons.findOne({_id:avathonId});
+                let avataremail = avathodetails?.avataremail
+                
+                sendEmail(email,"Successfully Joined the Avathon",avathonJoinNotification(userName,avathodetails))
+        
+                sendEmail(avataremail ,"A User joined Your Avathons",notifyAvatarUserJoined(userName,avathodetails))
+        
 
         let updatethisone = await Avathons.findOne({_id:avathonSuccess.avathonId});
         if(updatethisone){

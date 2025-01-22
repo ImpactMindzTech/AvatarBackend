@@ -139,16 +139,47 @@ export const dashboarddata = async (req, res) => {
 
     // Total user spending
     const totalSpendingDocuments = await Account.find({});
+
     const totalSpending = totalSpendingDocuments.reduce((sum, doc) => {
-      if (doc.TourPrice && Array.isArray(doc.TourPrice)) {
-        const totalDocSpending = doc.TourPrice.reduce((acc, price) => {
+      // Helper function to sum an array of prices
+      const sumArray = (array) => {
+        return array.reduce((acc, price) => {
           const numericPrice = parseFloat(price);
           return acc + (isNaN(numericPrice) ? 0 : numericPrice);
         }, 0);
-        return sum + totalDocSpending;
+      };
+    
+      let totalDocSpending = 0;
+    
+      // Sum TourPrice if it's an array
+      if (doc.TourPrice && Array.isArray(doc.TourPrice)) {
+        totalDocSpending += sumArray(doc.TourPrice);
       }
-      return sum;
+    
+      // Sum Avathons if it's an array
+      if (doc.Avathons && Array.isArray(doc.Avathons)) {
+        totalDocSpending += sumArray(doc.Avathons);
+      }
+    
+      // Add addmoreTime if it's a valid number
+      if (typeof doc.addmoreTime === 'number' && !isNaN(doc.addmoreTime)) {
+        totalDocSpending += doc.addmoreTime;
+      }
+    
+      // Add OfferPrice if it's a valid number
+      if (typeof doc.OfferPrice === 'number' && !isNaN(doc.OfferPrice)) {
+        totalDocSpending += doc.OfferPrice;
+      }
+    
+      // Add publicJoin if it's a valid number
+      if (typeof doc.publicJoin === 'number' && !isNaN(doc.publicJoin)) {
+        totalDocSpending += doc.publicJoin;
+      }
+    
+      // Add this document's total spending to the overall total
+      return sum + totalDocSpending;
     }, 0);
+    
 
     return res.status(200).json({
       message: "Successfully fetched",

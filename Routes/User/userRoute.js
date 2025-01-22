@@ -32,10 +32,10 @@ import { getExperience, getFilteredExperience, getdetailExp, addlike, expStatus,
 import {payout,refundForuser ,avtartip,paypalavttip,publicJoin,publicJoinPaypal,payaddon,offercheckout,offerPaypalcheckout} from "../../Controllers/User/PaymentController.js";
 import { sendMessage, editChat, deleteChat, replyChat } from "../../Controllers/User/ChatController.js";
 import { verifyToken } from "../../Middleware/Auth.js";
-import {upload } from "../../Middleware/multer.js";
+import uploadMiddleware, {upload } from "../../Middleware/multer.js";
 import { SignUpAndLoginWithGoogle } from "../../Controllers/User/GoogleSignInController.js";
 import { Notifications ,getNotification} from "../../Controllers/User/NotificationControler.js";
-import { allAvathons, bookavathons, getbookavathons,getavathonsdetails, avathoncheckout, avathonPaypalcheckout,giveavtRating } from "../../Controllers/User/avathonController.js";
+import { allAvathons, bookavathons, getbookavathons,getavathonsdetails, avathoncheckout, avathonPaypalcheckout,giveavtRating, notificationtoall } from "../../Controllers/User/avathonController.js";
 export const userRouter = express.Router();
 
 userRouter
@@ -69,7 +69,7 @@ userRouter
   .post("/deviceadd",deviceadd)
   .post("/completeoffer/:id",verifyToken,completeoffer)
   .post("/userprofile/:id", userprofile)
-  .post("/Adduser",upload.single("file"), AddUser)
+  .post("/Adduser",uploadMiddleware, AddUser)
   .post("/checkemail", checkemail)
   .post("/verifyOtp/:id", verifyOtp)
   .post("/payout",verifyToken,payout)
@@ -110,12 +110,13 @@ userRouter
   .post('/avathoncheckout',verifyToken,avathoncheckout)
   .post('/avathonpaypal',verifyToken,avathonPaypalcheckout)
   .post('/giverate/:id',verifyToken,giveavtRating)
+  .post('/notification',verifyToken,notificationtoall)
 
   .patch("/editAdd/:uid",verifyToken,editmultipleAdd)
   .delete("/deletemuladd/:uid",verifyToken, )
   .patch("/editchat/:id", verifyToken, editChat)
   .patch("/deletechat/:id/:status", verifyToken, deleteChat)
-  .patch("/username/:id",upload.single('file'),Addusername)
+  .patch("/username/:id",uploadMiddleware,Addusername)
 
   .patch("/deleteaddress/:id", verifyToken, deleteaddress)
   .patch("/updateBookingTime/:bookingId", verifyToken, updateBookingTime)
@@ -123,6 +124,6 @@ userRouter
   .patch("/deleteAcc/:s", verifyToken, deleteAcc)
   .patch("/freezeAcc/:s",verifyToken,freezeAcc)
   .patch("/changepassword/:id", changepassword)
-  .patch("/addprofile/:id", upload.single("file"), verifyToken, editprofile);
+  .patch("/addprofile/:id", uploadMiddleware, verifyToken, editprofile);
 
 

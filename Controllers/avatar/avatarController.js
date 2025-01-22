@@ -1,5 +1,6 @@
 import { Meeting } from "../../Models/User/MeetingModel.js";
 import cron from "node-cron";
+import 'dotenv/config';
 import moment from "moment-timezone";
 import { Available } from "../../Models/Avatar/Availaibilitymodel.js";
 import { Request } from "../../Models/User/requestModel.js";
@@ -35,6 +36,7 @@ import {
 } from "../../services/CreateEmail.js";
 import { Notification } from "../../Models/User/NotificationModel.js";
 import { Avathons } from "../../Models/Avatar/Avathons.js";
+import { uploadFileToS3 } from "../../Middleware/uploadfiles3.js";
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -184,8 +186,10 @@ export const Addexperience = async (req, res) => {
       const doc = await newTiming.save();
     }
 
+
     let images = req.files.images;
     let thumbnail = req.files.thumbnail;
+
 
     // Initialize imageFiles as an empty array
     let imageFiles = [];
@@ -198,13 +202,47 @@ export const Addexperience = async (req, res) => {
     }
 
     // If files are provided, map them to paths
-    if (images && images.length > 0) {
-      imageFiles = images.map((file) => file.path);
-    }
+    // if (images && images.length > 0) {
+    //   imageFiles = images.map((file) => `https://cdn.avatarwalk.com/${file.key}`);
+    // }
+ 
     let thumbnailpath = "";
-    if (thumbnail && thumbnail.length > 0) {
-      thumbnailpath = thumbnail.map((file) => file.path);
+    // if (thumbnail && thumbnail.length > 0) {
+    //   thumbnailpath = thumbnail.map((file) => `https://cdn.avatarwalk.com/${file.key}`);
+    // }
+
+  if (req.files.images) {
+      for (const file of req.files.images) {
+        const fileName = `${Date.now()}_${file.originalname}`;
+        const folder = 'images';
+
+        // Push S3 path to array
+        imageFiles.push(`https://awcdn.s3-accelerate.amazonaws.com/${folder}/${fileName}`);
+
+        // Background upload
+        uploadFileToS3(file.path, fileName, folder).catch((err) =>
+          console.error('Image upload failed:', err)
+        );
+      }
     }
+
+
+    // Handle video
+    if (req.files.thumbnail) {
+      const thumbnail = req.files.thumbnail[0];
+  
+      const fileName = `${Date.now()}_${thumbnail.originalname}`;
+      const folder = 'thumbnail';
+
+      // Set S3 path
+      thumbnailpath = `https://awcdn.s3-accelerate.amazonaws.com/${folder}/${fileName}`;
+   
+      // Background upload
+      uploadFileToS3(thumbnail.path, fileName, folder).catch((err) =>
+        console.error('Video upload failed:', err)
+      );
+    }
+
 
     if (role === "avatar") {
       let findname = await User.findOne({ _id: _id });
@@ -222,7 +260,7 @@ export const Addexperience = async (req, res) => {
         about: about,
         notesForUser: notesForUser,
         images: imageFiles,
-        thumbnail: thumbnailpath[0] || " ",
+        thumbnail: thumbnailpath || " ",
         avatarImage: avImg ? avImg.profileimage : "",
         lat: lat,
         lng: lng,

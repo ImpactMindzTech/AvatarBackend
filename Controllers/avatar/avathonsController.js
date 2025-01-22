@@ -2,6 +2,9 @@ import { Avathons } from "../../Models/Avatar/Avathons.js";
 import { Address } from "../../Models/User/addressModel.js";
 import { User } from "../../Models/User/userModel.js";
 import cloudinary from "cloudinary";
+import { sendEmail } from "../../services/EmailServices.js";
+import { avathonCreationNotification } from "../../services/CreateEmail.js";
+import { uploadFileToS3 } from "../../Middleware/uploadfiles3.js";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -70,16 +73,54 @@ export const Addavathons = async (req, res) => {
     
     let imageFiles = [];
     let videoPath = ""; // Initialize video path variable
-    if (video && video.length > 0) {
-      if (video && video.length > 0) {
-        videoPath = video.map((file) => file.path);
+    // if (video && video.length > 0) {
+    //   if (video && video.length > 0) {
+    //     videoPath = video.map((file) => `https://awcdn.s3-accelerate.amazonaws.com/${file.key}`);
+    //   }
+    // }
+
+  
+    // // If files are provided, map them to paths
+    // if (images && images.length > 0) {
+    //   imageFiles = images.map((file) => `https://awcdn.s3-accelerate.amazonaws.com/${file.key}`);
+    // }
+
+
+
+
+    if (req.files.images) {
+      for (const file of req.files.images) {
+        const fileName = `${Date.now()}_${file.originalname}`;
+        const folder = 'images';
+
+        // Push S3 path to array
+        imageFiles.push(`https://awcdn.s3-accelerate.amazonaws.com/${folder}/${fileName}`);
+
+        // Background upload
+        uploadFileToS3(file.path, fileName, folder).catch((err) =>
+          console.error('Image upload failed:', err)
+        );
       }
     }
-  
-    // If files are provided, map them to paths
-    if (images && images.length > 0) {
-      imageFiles = images.map((file) => file.path);
+
+    // Handle video
+    if (req.files.video && req.files.video.length > 0) {
+      const video = req.files.video[0];
+      const fileName = `${Date.now()}_${video.originalname}`;
+      const folder = 'videos';
+
+      // Set S3 path
+      videoPath = `https://awcdn.s3-accelerate.amazonaws.com/${folder}/${fileName}`;
+   
+      // Background upload
+      uploadFileToS3(video.path, fileName, folder).catch((err) =>
+        console.error('Video upload failed:', err)
+      );
     }
+
+
+
+
  
     const timeOnly = Time.split(":"); // Expecting time in format "HH:MM"
     if (timeOnly.length !== 2 || isNaN(timeOnly[0]) || isNaN(timeOnly[1])) {
@@ -165,7 +206,7 @@ export const Addavathons = async (req, res) => {
         avathonDescription: avathonDescription,
 
         EarlybirdPrice: EarlybirdPrice,
-        avathonsThumbnail: videoPath[0] || " ",
+        avathonsThumbnail: videoPath|| " ",
         Availablespots: Availablespots,
         avathonsImage: imageFiles,
         aboutStream: aboutStream,
@@ -179,7 +220,7 @@ export const Addavathons = async (req, res) => {
       });
 
       let doc = await newavathons.save();
-
+    sendEmail(doc.avataremail,"Successfully Created a New Avathons", avathonCreationNotification(doc))
       return res.status(201).json({
         message: "New Avathon Created",
         data: doc,

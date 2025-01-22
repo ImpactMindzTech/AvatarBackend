@@ -1674,3 +1674,235 @@ export const avatarWithdrawNotification = (avatarName, amount, formattedDate) =>
   `;
 };
 
+export const avathonnotification = (emailContent) => {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            background-color: #e9ecef;
+            margin: 0;
+            padding: 0;
+          }
+          .container {
+            background-color: #ffffff;
+            margin: 0 auto;
+            padding: 40px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            text-align: center;
+          }
+          h1 {
+            color: #333333;
+            font-size: 24px;
+            margin-bottom: 20px;
+          }
+          p {
+            color: #666666;
+            font-size: 16px;
+            margin-bottom: 20px;
+          }
+          .link {
+            display: inline-block;
+            margin: 20px 0;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffffff;
+            background-color: #007bff;
+            text-decoration: none;
+            border-radius: 4px;
+          }
+          .link:hover {
+            background-color: #0056b3;
+          }
+          .footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #aaaaaa;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+       <h1>Hii ${emailContent.userName} Your Avathon ${emailContent.avathonname} Has Started!</h1>
+          <p>Your avathon has started. Please join the avathon by clicking the "Join" button under the "Avathons" tab in your account.</p>
+<p class="footer">If you have any questions, feel free to contact us.</p>
+
+          <p class="footer">If you have any questions, feel free to contact us.</p>
+        </div>
+      </body>
+    </html>
+  `;
+};
+
+export const avathonJoinNotification = (userName,avathodetails) => {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            background-color: #e9ecef;
+            margin: 0;
+            padding: 0;
+          }
+          .container {
+            background-color: #ffffff;
+            margin: 0 auto;
+            padding: 40px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            text-align: center;
+          }
+          h1 {
+            color: #333333;
+            font-size: 24px;
+            margin-bottom: 20px;
+          }
+          p {
+            color: #666666;
+            font-size: 16px;
+            margin-bottom: 20px;
+          }
+          .footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #aaaaaa;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>Welcome, ${userName}!</h1>
+          <p>Congratulations! You have successfully joined the Avathon: <strong>${avathodetails?.
+            avathonTitle}</strong>.</p>
+  <p>The Avathon is scheduled as follows:</p>
+  <ul style="list-style-type: none; padding: 0; margin: 0;">
+    <li><strong>Date:</strong> ${avathodetails?.avathonDate}</li>
+    <li><strong>Time:</strong> ${avathodetails?.avathonTime}</li>
+    <li><strong>Duration:</strong> ${avathodetails?.avathonHours} hours</li>
+  </ul>
+          <p class="footer">If you have any questions or need assistance, don’t hesitate to reach out to our support team.</p>
+          <p class="footer">Best Regards, <br> The Avatar Team</p>
+        </div>
+      </body>
+    </html>
+  `;
+};
+
+export const notifyAvatarUserJoined = (userName,avathodetails) => {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            background-color: #e9ecef;
+            margin: 0;
+            padding: 0;
+          }
+          .container {
+            background-color: #ffffff;
+            margin: 0 auto;
+            padding: 40px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            text-align: center;
+          }
+          h1 {
+            color: #333333;
+            font-size: 24px;
+            margin-bottom: 20px;
+          }
+          p {
+            color: #666666;
+            font-size: 16px;
+            margin-bottom: 20px;
+          }
+          .footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #aaaaaa;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>New User Joined Your Avathon!</h1>
+          <p>Hello ${avathodetails?.avatarName},</p>
+          <p>We’re excited to inform you that <strong>${userName}</strong> has joined your Avathon: <strong>${avathodetails?.avathonTitle}</strong>.</p>
+         
+          <p class="footer">If you have any questions or need assistance, feel free to contact us.</p>
+          <p class="footer">Best Regards, <br> The Avatar Team</p>
+        </div>
+      </body>
+    </html>
+  `;
+};
+
+export const avathonCreationNotification = (doc) => {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            background-color: #e9ecef;
+            margin: 0;
+            padding: 0;
+          }
+          .container {
+            background-color: #ffffff;
+            margin: 0 auto;
+            padding: 40px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            text-align: center;
+          }
+          h1 {
+            color: #333333;
+            font-size: 24px;
+            margin-bottom: 20px;
+          }
+          p {
+            color: #666666;
+            font-size: 16px;
+            margin-bottom: 20px;
+          }
+          .footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #aaaaaa;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>Avathon Created Successfully!</h1>
+          <p>Hello ${doc?.avatarName},</p>
+          <p>Congratulations! You have successfully created an Avathon with the following details:</p>
+          <ul style="list-style-type: none; padding: 0; margin: 0;">
+            <li><strong>Avathon Title:</strong> ${doc?.avathonTitle}</li>
+            <li><strong>Date:</strong> ${doc?.avathonDate}</li>
+            <li><strong>Time:</strong> ${doc?.avathonTime}</li>
+            <li><strong>Duration:</strong> ${doc?.avathonHours} hours</li>
+            <li><strong>Duration:</strong> ${doc?.avathonsStatus} </li>
+          </ul>
+         
+          <p class="footer">If you have any questions or need assistance, don’t hesitate to reach out to our support team.</p>
+          <p class="footer">Best Regards, <br> The Avatar Team</p>
+        </div>
+      </body>
+    </html>
+  `;
+};
